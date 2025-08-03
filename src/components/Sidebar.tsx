@@ -6,11 +6,11 @@ import {
   PlayCircle, 
   ShoppingBag, 
   MessageCircle, 
-  Bot,
   X,
   Leaf,
-  TrendingUp,
-  BookOpen
+  BookOpen,
+  CheckSquare,
+  Camera
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -36,6 +36,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: Home, 
       path: '/dashboard',
       description: 'Overview of your plants'
+    },
+    { 
+      id: 'tasks', 
+      label: 'Care Tasks', 
+      icon: CheckSquare, 
+      path: '/tasks',
+      description: 'Manage care schedules'
     },
     { 
       id: 'calendar', 
@@ -66,11 +73,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       description: 'Get plant care advice'
     },
     { 
-      id: 'whatsapp', 
-      label: 'WhatsApp Bot', 
-      icon: Bot, 
-      path: '/whatsapp-bot',
-      description: 'Automated care reminders'
+      id: 'disease-detection', 
+      label: 'Disease Detection', 
+      icon: Camera, 
+      path: '/disease-detection',
+      description: 'AI-powered plant disease detection'
     },
   ];
 
@@ -99,29 +106,30 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside className={`
-        fixed top-0 left-0 h-full w-80 bg-white/90 backdrop-blur-md border-r border-green-200 transform transition-transform duration-300 z-50 shadow-green-lg
+        fixed top-0 left-0 h-screen w-72 sm:w-80 bg-white border-r border-gray-200 transform transition-transform duration-300 z-50 shadow-lg overflow-hidden
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:static lg:z-auto lg:shadow-none
       `}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-green-100 mt-16 lg:mt-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-green rounded-lg flex items-center justify-center">
               <Leaf className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-lg font-bold text-green-900">Navigation</h2>
+            <h2 className="text-base sm:text-lg font-bold text-green-900">Navigation</h2>
           </div>
           <button
             onClick={onClose}
             className="p-2 rounded-xl text-green-600 hover:bg-green-50 transition-all duration-200 lg:hidden"
+            aria-label="Close menu"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
         
         {/* Navigation */}
-        <nav className="flex-1 p-6">
-          <div className="space-y-2">
+        <nav className="flex-1 p-4 sm:p-6 overflow-y-auto">
+          <div className="space-y-1 sm:space-y-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeSection === item.id;
@@ -130,59 +138,44 @@ const Sidebar: React.FC<SidebarProps> = ({
                   key={item.id}
                   onClick={() => handleNavigation(item)}
                   className={`
-                    w-full group relative overflow-hidden rounded-2xl transition-all duration-300
+                    w-full group relative overflow-hidden rounded-lg transition-all duration-200
                     ${isActive 
-                      ? 'bg-gradient-green text-white shadow-green-lg transform scale-105' 
-                      : 'text-green-700 hover:bg-green-50 hover:shadow-green'
+                      ? 'bg-green-600 text-white shadow-sm' 
+                      : 'text-gray-700 hover:bg-gray-100'
                     }
                   `}
                 >
-                  <div className="flex items-center space-x-4 p-4">
+                  <div className="flex items-center space-x-3 p-3 sm:p-3">
                     <div className={`
-                      p-3 rounded-xl transition-all duration-300
+                      p-2 rounded-lg transition-all duration-200 flex-shrink-0
                       ${isActive 
                         ? 'bg-white/20 text-white' 
-                        : 'bg-green-100 text-green-600 group-hover:bg-green-200'
+                        : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
                       }
                     `}>
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <div className="flex-1 text-left">
-                      <p className={`font-semibold ${isActive ? 'text-white' : 'text-green-900'}`}>
+                    <div className="flex-1 text-left min-w-0">
+                      <p className={`font-medium text-sm sm:text-base truncate ${isActive ? 'text-white' : 'text-gray-900'}`}>
                         {item.label}
                       </p>
-                      <p className={`text-sm ${isActive ? 'text-white/80' : 'text-green-600'}`}>
+                      <p className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500'} truncate`}>
                         {item.description}
                       </p>
                     </div>
                   </div>
-                  
-                  {/* Active indicator */}
-                  {isActive && (
-                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-white rounded-l-full" />
-                  )}
                 </button>
               );
             })}
           </div>
         </nav>
 
-        {/* Footer */}
-        <div className="p-6 border-t border-green-100">
-          <div className="bg-gradient-green-soft rounded-2xl p-4">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-green-600" />
-              </div>
-              <div>
-                <p className="font-semibold text-green-900">Plant Growth</p>
-                <p className="text-sm text-green-700">Track your progress</p>
-              </div>
-            </div>
-            <div className="w-full bg-white/50 rounded-full h-2">
-              <div className="bg-white h-2 rounded-full" style={{ width: '75%' }} />
-            </div>
-            <p className="text-xs text-green-700 mt-2">75% of plants thriving</p>
+        {/* Footer - Mobile Only */}
+        <div className="lg:hidden p-4 border-t border-gray-100">
+          <div className="text-center">
+            <p className="text-xs text-gray-500">
+              PlantCare Pro v1.0
+            </p>
           </div>
         </div>
       </aside>

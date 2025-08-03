@@ -1,10 +1,89 @@
-import React, { useState } from 'react';
-import { Search, Filter, ShoppingCart, Star, Heart, Grid, List } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, ShoppingCart, Star, Heart, Grid, List, Plus, Tag, MapPin, Package, RefreshCw } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { listingService } from '../lib/services';
+import { UserListing } from '../lib/supabase';
+import { useToast } from '../contexts/ToastContext';
 
 const Marketplace: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeSection, setActiveSection] = useState<'buy' | 'sell'>('buy');
+  const [listings, setListings] = useState<UserListing[]>([]);
+  const [userListings, setUserListings] = useState<UserListing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refreshListings = async () => {
+    try {
+      setLoading(true);
+      const [allListings, userOwnListings] = await Promise.all([
+        listingService.getActiveListings(),
+        user ? listingService.getUserListings(user.id) : Promise.resolve([])
+      ]);
+      
+      setListings(allListings);
+      setUserListings(userOwnListings);
+      showToast('Listings refreshed!', 'success');
+    } catch (error) {
+      console.error('Error refreshing listings:', error);
+      showToast('Failed to refresh listings', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch listings on component mount and when user changes
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        setLoading(true);
+        const [allListings, userOwnListings] = await Promise.all([
+          listingService.getActiveListings(),
+          user ? listingService.getUserListings(user.id) : Promise.resolve([])
+        ]);
+        
+        setListings(allListings);
+        setUserListings(userOwnListings);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+        showToast('Failed to load listings', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchListings();
+  }, [user, showToast]);
+
+  // Refresh listings when component comes into focus (e.g., after creating a listing)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user) {
+        const fetchListings = async () => {
+          try {
+            const [allListings, userOwnListings] = await Promise.all([
+              listingService.getActiveListings(),
+              listingService.getUserListings(user.id)
+            ]);
+            
+            setListings(allListings);
+            setUserListings(userOwnListings);
+          } catch (error) {
+            console.error('Error refreshing listings:', error);
+          }
+        };
+        fetchListings();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user]);
 
   const categories = [
     { id: 'all', name: 'All Products', count: 156 },
@@ -14,106 +93,68 @@ const Marketplace: React.FC = () => {
     { id: 'fertilizers', name: 'Fertilizers', count: 10 },
   ];
 
-  const products = [
-    {
-      id: 1,
-      name: 'Monstera Deliciosa',
-      price: 45.99,
-      originalPrice: 59.99,
-      image: 'https://images.pexels.com/photos/2125275/pexels-photo-2125275.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.8,
-      reviews: 124,
-      seller: 'Green Paradise',
-      category: 'plants',
-      inStock: true,
-      featured: true
-    },
-    {
-      id: 2,
-      name: 'Ceramic Planter Set',
-      price: 29.99,
-      image: 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.6,
-      reviews: 87,
-      seller: 'Pottery Plus',
-      category: 'pots',
-      inStock: true,
-      featured: false
-    },
-    {
-      id: 3,
-      name: 'Snake Plant (Sansevieria)',
-      price: 24.99,
-      image: 'https://images.pexels.com/photos/2123339/pexels-photo-2123339.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.9,
-      reviews: 203,
-      seller: 'Urban Jungle',
-      category: 'plants',
-      inStock: true,
-      featured: true
-    },
-    {
-      id: 4,
-      name: 'Plant Care Tool Kit',
-      price: 19.99,
-      originalPrice: 24.99,
-      image: 'https://images.pexels.com/photos/1158954/pexels-photo-1158954.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.7,
-      reviews: 156,
-      seller: 'Garden Pro',
-      category: 'tools',
-      inStock: true,
-      featured: false
-    },
-    {
-      id: 5,
-      name: 'Peace Lily',
-      price: 32.99,
-      image: 'https://images.pexels.com/photos/1400375/pexels-photo-1400375.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.5,
-      reviews: 92,
-      seller: 'Bloom & Grow',
-      category: 'plants',
-      inStock: false,
-      featured: false
-    },
-    {
-      id: 6,
-      name: 'Organic Plant Fertilizer',
-      price: 14.99,
-      image: 'https://images.pexels.com/photos/1084199/pexels-photo-1084199.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.4,
-      reviews: 67,
-      seller: 'EcoGrow',
-      category: 'fertilizers',
-      inStock: true,
-      featured: false
-    },
-  ];
-
-  const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.seller.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+  // Filter listings based on search and category
+  const filteredListings = listings.filter(listing => {
+    const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (listing.description && listing.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesSearch;
   });
 
   return (
     <div className="space-y-6 mt-16 lg:mt-0">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">Marketplace</h1>
+      {/* Section Toggle */}
+      <div className="bg-white rounded-xl p-1 shadow-sm border border-gray-200">
+        <div className="flex">
+          <button
+            onClick={() => setActiveSection('buy')}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              activeSection === 'buy'
+                ? 'bg-green-600 text-white'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <ShoppingCart className="w-4 h-4 inline mr-2" />
+            Buy
+          </button>
+          <button
+            onClick={() => setActiveSection('sell')}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              activeSection === 'sell'
+                ? 'bg-green-600 text-white'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Tag className="w-4 h-4 inline mr-2" />
+            Sell
+          </button>
+        </div>
+      </div>
+
+      {activeSection === 'buy' ? (
+        <>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <h1 className="text-3xl font-bold text-gray-900">Marketplace</h1>
         
         <div className="flex items-center space-x-4 w-full sm:w-auto">
           <div className="relative flex-1 sm:flex-initial">
             <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Search listings..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent w-full sm:w-64"
             />
           </div>
+          
+          <button
+            onClick={refreshListings}
+            disabled={loading}
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Refresh listings"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
           
           <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
             <button
@@ -202,131 +243,224 @@ const Marketplace: React.FC = () => {
 
         {/* Products Grid/List */}
         <div className="flex-1">
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-gray-600">
-              {filteredProducts.length} products found
-            </p>
-            <select className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-              <option>Sort by relevance</option>
-              <option>Price: Low to High</option>
-              <option>Price: High to Low</option>
-              <option>Highest Rated</option>
-              <option>Most Reviews</option>
-            </select>
-          </div>
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-500">Loading listings...</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-gray-600">
+                  {filteredListings.length} listings found
+                </p>
+                <select className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                  <option>Sort by relevance</option>
+                  <option>Price: Low to High</option>
+                  <option>Price: High to Low</option>
+                  <option>Newest First</option>
+                </select>
+              </div>
 
-          {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow group">
-                  <div className="relative">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {product.featured && (
-                      <div className="absolute top-2 left-2 bg-emerald-600 text-white px-2 py-1 rounded text-xs font-medium">
-                        Featured
+              {viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredListings.map((listing) => (
+                    <div key={listing.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow group">
+                      <div className="relative">
+                        <img
+                          src={listing.images && listing.images.length > 0 ? listing.images[0] : 'https://images.pexels.com/photos/2125275/pexels-photo-2125275.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                          alt={listing.title}
+                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-2 left-2 bg-emerald-600 text-white px-2 py-1 rounded text-xs font-medium">
+                          {listing.condition}
+                        </div>
+                        <button className="absolute top-2 right-2 p-2 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-colors">
+                          <Heart className="w-4 h-4 text-gray-600" />
+                        </button>
                       </div>
-                    )}
-                    {!product.inStock && (
-                      <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-medium">
-                        Out of Stock
-                      </div>
-                    )}
-                    <button className="absolute top-2 right-2 p-2 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-colors">
-                      <Heart className="w-4 h-4 text-gray-600" />
-                    </button>
-                  </div>
-                  
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{product.seller}</p>
-                    
-                    <div className="flex items-center space-x-1 mb-2">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium">{product.rating}</span>
-                      <span className="text-xs text-gray-500">({product.reviews})</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-bold text-gray-900">${product.price}</span>
-                        {product.originalPrice && (
-                          <span className="text-sm text-gray-500 line-through">${product.originalPrice}</span>
+                      
+                      <div className="p-4">
+                        <h3 className="font-semibold text-gray-900 mb-1">{listing.title}</h3>
+                        <p className="text-sm text-gray-600 mb-2">{listing.profiles?.full_name || 'Anonymous'}</p>
+                        
+                        {listing.description && (
+                          <p className="text-sm text-gray-600 mb-2 line-clamp-2">{listing.description}</p>
                         )}
+                        
+                        {listing.location && (
+                          <div className="flex items-center text-sm text-gray-500 mb-2">
+                            <MapPin className="w-4 h-4 mr-1" />
+                            {listing.location}
+                          </div>
+                        )}
+                        
+                                                 <div className="flex items-center justify-between">
+                           <div className="flex items-center space-x-2">
+                             <span className="font-bold text-gray-900">
+                               {listing.currency === 'NPR' ? 'रु' : listing.currency === 'USD' ? '$' : listing.currency === 'EUR' ? '€' : listing.currency === 'GBP' ? '£' : 'रु'}{listing.price}
+                             </span>
+                             <span className="text-sm text-gray-500">{listing.currency}</span>
+                           </div>
+                           <button 
+                             onClick={() => navigate(`/buy/${listing.id}`)}
+                             className="p-2 rounded-lg transition-colors bg-emerald-600 text-white hover:bg-emerald-700"
+                           >
+                             <ShoppingCart className="w-4 h-4" />
+                           </button>
+                         </div>
                       </div>
-                      <button 
-                        disabled={!product.inStock}
-                        className={`p-2 rounded-lg transition-colors ${
-                          product.inStock 
-                            ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        }`}
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                      </button>
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredListings.map((listing) => (
+                    <div key={listing.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                      <div className="flex items-center space-x-6">
+                        <img
+                          src={listing.images && listing.images.length > 0 ? listing.images[0] : 'https://images.pexels.com/photos/2125275/pexels-photo-2125275.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                          alt={listing.title}
+                          className="w-24 h-24 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-semibold text-gray-900 mb-1">{listing.title}</h3>
+                              <p className="text-sm text-gray-600 mb-2">{listing.profiles?.full_name || 'Anonymous'}</p>
+                              {listing.description && (
+                                <p className="text-sm text-gray-600 mb-2 line-clamp-2">{listing.description}</p>
+                              )}
+                              {listing.location && (
+                                <div className="flex items-center text-sm text-gray-500 mb-2">
+                                  <MapPin className="w-4 h-4 mr-1" />
+                                  {listing.location}
+                                </div>
+                              )}
+                            </div>
+                                                         <div className="text-right">
+                               <div className="flex items-center space-x-2 mb-2">
+                                 <span className="font-bold text-xl text-gray-900">
+                                   {listing.currency === 'NPR' ? 'रु' : listing.currency === 'USD' ? '$' : listing.currency === 'EUR' ? '€' : listing.currency === 'GBP' ? '£' : 'रु'}{listing.price}
+                                 </span>
+                                 <span className="text-sm text-gray-500">{listing.currency}</span>
+                               </div>
+                               <button 
+                                 onClick={() => navigate(`/buy/${listing.id}`)}
+                                 className="px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                               >
+                                 <ShoppingCart className="w-4 h-4" />
+                                 <span>Buy Now</span>
+                               </button>
+                             </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {filteredListings.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">No listings found matching your criteria.</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  ) : (
+    // Sell Section
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <h1 className="text-3xl font-bold text-gray-900">Sell Your Plants</h1>
+        <button
+          onClick={() => navigate('/sell/new')}
+          className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Create Listing</span>
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Tag className="w-8 h-8 text-green-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Start Selling Your Plants</h3>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            Turn your plant collection into profit! List your plants for sale and connect with fellow plant enthusiasts.
+          </p>
+          <div className="space-y-4">
+            <button
+              onClick={() => navigate('/sell/new')}
+              className="w-full sm:w-auto px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+            >
+              Create Your First Listing
+            </button>
+            <div className="text-sm text-gray-500">
+              <p>• No listing fees</p>
+              <p>• Easy to manage</p>
+              <p>• Reach plant lovers worldwide</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* My Listings Section */}
+      {user && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">My Listings</h3>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="w-6 h-6 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+              <p className="text-gray-500">Loading your listings...</p>
+            </div>
+          ) : userListings.length > 0 ? (
+            <div className="space-y-4">
+              {userListings.map((listing) => (
+                <div key={listing.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <img
+                      src={listing.images && listing.images.length > 0 ? listing.images[0] : 'https://images.pexels.com/photos/2125275/pexels-photo-2125275.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                      alt={listing.title}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{listing.title}</h4>
+                      <p className="text-sm text-gray-600">${listing.price} {listing.currency}</p>
+                      <p className="text-xs text-gray-500">Status: {listing.status}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                      Edit
+                    </button>
+                    <button className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="space-y-4">
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-center space-x-6">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
-                          <p className="text-sm text-gray-600 mb-2">{product.seller}</p>
-                          <div className="flex items-center space-x-1 mb-2">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">{product.rating}</span>
-                            <span className="text-xs text-gray-500">({product.reviews} reviews)</span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span className="font-bold text-xl text-gray-900">${product.price}</span>
-                            {product.originalPrice && (
-                              <span className="text-sm text-gray-500 line-through">${product.originalPrice}</span>
-                            )}
-                          </div>
-                          <button 
-                            disabled={!product.inStock}
-                            className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
-                              product.inStock 
-                                ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
-                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            }`}
-                          >
-                            <ShoppingCart className="w-4 h-4" />
-                            <span>{product.inStock ? 'Add to Cart' : 'Out of Stock'}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No products found matching your criteria.</p>
+            <div className="text-center py-8">
+              <p className="text-gray-500">You haven't created any listings yet.</p>
+              <button
+                onClick={() => navigate('/sell/new')}
+                className="mt-2 text-green-600 hover:text-green-700 font-medium"
+              >
+                Create your first listing →
+              </button>
             </div>
           )}
         </div>
-      </div>
+      )}
+    </div>
+  )}
     </div>
   );
 };

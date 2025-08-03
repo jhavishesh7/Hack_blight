@@ -3,18 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-console.log('🔧 Supabase configuration check:');
-console.log('📡 VITE_SUPABASE_URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
-console.log('🔑 VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
-
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('💥 Missing Supabase environment variables!');
+  console.error('Missing Supabase environment variables!');
   throw new Error('Missing Supabase environment variables');
 }
 
-console.log('🚀 Creating Supabase client...');
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-console.log('✅ Supabase client created successfully');
 
 // Database types
 export interface Profile {
@@ -151,6 +145,65 @@ export interface ChatMessage {
   message: string;
   message_type: 'text' | 'image' | 'file';
   file_url?: string;
+  created_at: string;
+}
+
+export interface UserListing {
+  id: string;
+  user_id: string;
+  plant_id: string;
+  title: string;
+  description?: string;
+  price: number;
+  currency: string;
+  condition: 'excellent' | 'good' | 'fair' | 'poor';
+  images?: string[];
+  location?: string;
+  shipping_available: boolean;
+  local_pickup: boolean;
+  status: 'active' | 'sold' | 'inactive' | 'pending';
+  views_count: number;
+  created_at: string;
+  updated_at: string;
+  plants?: Plant;
+  profiles?: Profile;
+}
+
+export interface ListingMessage {
+  id: string;
+  listing_id: string;
+  sender_id: string;
+  receiver_id: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface ListingFavorite {
+  id: string;
+  user_id: string;
+  listing_id: string;
+  created_at: string;
+}
+
+export interface ListingView {
+  id: string;
+  listing_id: string;
+  viewer_id?: string;
+  ip_address?: string;
+  user_agent?: string;
+  viewed_at: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: 'sale' | 'purchase' | 'system' | 'message';
+  is_read: boolean;
+  related_listing_id?: string;
+  related_user_id?: string;
   created_at: string;
 }
 

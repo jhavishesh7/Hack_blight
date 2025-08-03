@@ -14,6 +14,11 @@
   --border-green: #d1fae5;
 }
 
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -25,27 +30,88 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-  color: #064e3b;
+  background: #f9fafb;
+  color: #111827;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  font-variation-settings: normal;
+  height: 100%;
+  overflow-x: hidden;
 }
 
-/* Custom scrollbar */
+#root {
+  min-height: 100vh;
+}
+
+/* Improved typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+h2 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+p {
+  line-height: 1.6;
+  color: #374151;
+}
+
+/* Better button typography */
+button {
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+
+/* Improved input typography */
+input, textarea, select {
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Custom scrollbar - Always visible */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 12px;
 }
 
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #10b981;
-  border-radius: 4px;
+  background: linear-gradient(to bottom, #10b981, #059669);
+  border-radius: 6px;
+  border: 2px solid #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #059669;
+  background: linear-gradient(to bottom, #059669, #047857);
+}
+
+::-webkit-scrollbar-corner {
+  background: #f1f5f9;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #10b981 #f1f5f9;
 }
 
 /* Glass morphism effect */
@@ -77,6 +143,77 @@ body {
   }
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
@@ -89,13 +226,74 @@ body {
   animation: slideIn 0.5s ease-out;
 }
 
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-fade-in-left {
+  animation: fadeInLeft 0.6s ease-out;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 0.6s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s ease-out;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.8s ease-out;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Staggered animations for landing page */
+.animate-stagger-1 {
+  animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+.animate-stagger-2 {
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.animate-stagger-3 {
+  animation: fadeInUp 0.6s ease-out 0.3s both;
+}
+
+.animate-stagger-4 {
+  animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+/* Hover animations */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
 /* Custom button styles */
 .btn-primary {
-  @apply bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200;
+  @apply bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200;
 }
 
 .btn-secondary {
-  @apply bg-white text-green-600 border-2 border-green-200 px-6 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg hover:bg-green-50 transform hover:-translate-y-0.5 transition-all duration-200;
+  @apply bg-white text-green-600 border-2 border-green-200 px-6 py-3 rounded-lg font-semibold shadow-md hover:shadow-lg hover:bg-green-50 transform hover:-translate-y-0.5 transition-all duration-200;
 }
 
 .btn-ghost {
@@ -104,16 +302,16 @@ body {
 
 /* Card styles */
 .card {
-  @apply bg-white rounded-2xl shadow-lg border border-green-100 hover:shadow-xl transition-all duration-300;
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300;
 }
 
 .card-hover {
-  @apply transform hover:-translate-y-2 hover:shadow-2xl;
+  @apply transform hover:-translate-y-1 hover:shadow-lg;
 }
 
 /* Input styles */
 .input-primary {
-  @apply w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white;
+  @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white;
 }
 
 /* Gradient backgrounds */
@@ -243,8 +441,8 @@ input[type="range"]::-moz-range-thumb {
   }
   
   body {
-    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
-    color: #f0fdf4;
+    background: #111827;
+    color: #f9fafb;
   }
   
   .card {
@@ -253,5 +451,25 @@ input[type="range"]::-moz-range-thumb {
   
   .input-primary {
     @apply bg-gray-800 border-gray-600 text-white;
+  }
+}
+
+/* Fix for Lucide React icons */
+.lucide {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Console error fixes */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
   }
 }

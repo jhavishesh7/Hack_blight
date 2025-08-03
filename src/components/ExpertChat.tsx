@@ -58,38 +58,40 @@ const ExpertChat: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Simulate initial loading
+  // Simple initialization without user data logging
   useEffect(() => {
-    const timer = setTimeout(() => {
+    setTimeout(() => {
       setInitialLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
+    }, 1000);
   }, []);
 
-  const simulateAIResponse = async (userMessage: string): Promise<string> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock AI responses based on user input
-    const lowerMessage = userMessage.toLowerCase();
-    
-    if (lowerMessage.includes('yellow') || lowerMessage.includes('leaves')) {
-      return "Yellow leaves can indicate several issues:\n\n1. **Overwatering** - Check if soil is soggy\n2. **Underwatering** - Soil should be moist but not dry\n3. **Nutrient deficiency** - Consider fertilizing\n4. **Too much sun** - Move to indirect light\n\nCan you tell me more about your watering schedule and lighting conditions?";
+  const getAIResponse = async (userMessage: string): Promise<string> => {
+    try {
+      // For now, using a simple response system
+      // You can replace this with actual OpenAI API call
+      const lowerMessage = userMessage.toLowerCase();
+      
+      if (lowerMessage.includes('yellow') || lowerMessage.includes('leaves')) {
+        return "Yellow leaves can indicate several issues:\n\n1. **Overwatering** - Check if soil is soggy\n2. **Underwatering** - Soil should be moist but not dry\n3. **Nutrient deficiency** - Consider fertilizing\n4. **Too much sun** - Move to indirect light\n\nCan you tell me more about your watering schedule and lighting conditions?";
+      }
+      
+      if (lowerMessage.includes('monstera') || lowerMessage.includes('water')) {
+        return "Monstera plants prefer:\n\n💧 **Watering**: Every 1-2 weeks, when top 2-3 inches of soil is dry\n🌞 **Light**: Bright, indirect sunlight\n🌡️ **Temperature**: 65-85°F (18-29°C)\n💨 **Humidity**: 60-80%\n\nWater thoroughly and let excess drain. Never let it sit in water!";
+      }
+      
+      if (lowerMessage.includes('propagate')) {
+        return "Here's how to propagate most plants:\n\n1. **Choose a healthy stem** with 2-3 nodes\n2. **Cut below a node** with clean scissors\n3. **Remove lower leaves** to expose nodes\n4. **Place in water** or moist soil\n5. **Keep in bright, indirect light**\n6. **Wait for roots** (2-6 weeks)\n\nWhich plant are you trying to propagate?";
+      }
+      
+      if (lowerMessage.includes('soil')) {
+        return "For indoor plants, use a well-draining potting mix:\n\n🌱 **Basic mix**: 2 parts potting soil + 1 part perlite + 1 part peat moss\n🌿 **Succulents**: Add extra perlite or sand\n🌺 **Orchids**: Use orchid bark mix\n🌳 **Large plants**: Add compost for nutrients\n\nAvoid garden soil - it's too heavy for pots!";
+      }
+      
+      return "I'd be happy to help with your plant care question! To give you the best advice, could you tell me:\n\n1. What type of plant you have\n2. What specific issue you're experiencing\n3. Your current care routine\n\nThis will help me provide more targeted recommendations! 🌿";
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      return "I'm sorry, I'm having trouble processing your request right now. Please try again in a moment.";
     }
-    
-    if (lowerMessage.includes('monstera') || lowerMessage.includes('water')) {
-      return "Monstera plants prefer:\n\n💧 **Watering**: Every 1-2 weeks, when top 2-3 inches of soil is dry\n🌞 **Light**: Bright, indirect sunlight\n🌡️ **Temperature**: 65-85°F (18-29°C)\n💨 **Humidity**: 60-80%\n\nWater thoroughly and let excess drain. Never let it sit in water!";
-    }
-    
-    if (lowerMessage.includes('propagate')) {
-      return "Here's how to propagate most plants:\n\n1. **Choose a healthy stem** with 2-3 nodes\n2. **Cut below a node** with clean scissors\n3. **Remove lower leaves** to expose nodes\n4. **Place in water** or moist soil\n5. **Keep in bright, indirect light**\n6. **Wait for roots** (2-6 weeks)\n\nWhich plant are you trying to propagate?";
-    }
-    
-    if (lowerMessage.includes('soil')) {
-      return "For indoor plants, use a well-draining potting mix:\n\n🌱 **Basic mix**: 2 parts potting soil + 1 part perlite + 1 part peat moss\n🌿 **Succulents**: Add extra perlite or sand\n🌺 **Orchids**: Use orchid bark mix\n🌳 **Large plants**: Add compost for nutrients\n\nAvoid garden soil - it's too heavy for pots!";
-    }
-    
-    return "I'd be happy to help with your plant care question! To give you the best advice, could you tell me:\n\n1. What type of plant you have\n2. What specific issue you're experiencing\n3. Your current care routine\n\nThis will help me provide more targeted recommendations! 🌿";
   };
 
   const handleSendMessage = async () => {
@@ -108,7 +110,7 @@ const ExpertChat: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const aiResponse = await simulateAIResponse(inputMessage);
+      const aiResponse = await getAIResponse(inputMessage);
       
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
